@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Giver | ผู้ให้ที่ไม่เคยหวังสิ่งตอบแทน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@200;300;400;500;600;700&family=Kanit:wght@200;300;400;500;600;700&family=IBM+Plex+Sans+Thai:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#050505;
+    --primary:#7C5CFF;
+    --secondary:#00D9FF;
+    --accent:#9CFFB8;
+    --text:#FFFFFF;
+    --text-sub:#BBBBBB;
+    --card:rgba(255,255,255,0.08);
+    --border:rgba(255,255,255,0.15);
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Sans Thai','Prompt','Kanit',sans-serif;
+    overflow-x:hidden;
+    line-height:1.7;
+    cursor:none;
+  }
+  ::selection{background:var(--primary);color:#fff;}
+
+  h1,h2,h3,.display{font-family:'Kanit','Prompt',sans-serif;}
+
+  /* ---------- Loading Screen ---------- */
+  #loader{
+    position:fixed;inset:0;z-index:9999;
+    background:var(--bg);
+    display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;
+    transition:opacity 1s ease, visibility 1s ease;
+  }
+  #loader.hidden{opacity:0;visibility:hidden;pointer-events:none;}
+  .loader-heart{
+    width:50px;height:50px;position:relative;
+    animation:loaderPulse 1.2s ease-in-out infinite;
+  }
+  .loader-heart svg{width:100%;height:100%;filter:drop-shadow(0 0 20px var(--primary));}
+  @keyframes loaderPulse{
+    0%,100%{transform:scale(1);}
+    50%{transform:scale(1.15);}
+  }
+  .loader-text{
+    font-size:.85rem;letter-spacing:4px;color:var(--text-sub);
+    text-transform:uppercase;
+  }
+
+  /* ---------- Custom Cursor ---------- */
+  .cursor-dot, .cursor-glow{
+    position:fixed;top:0;left:0;
+    border-radius:50%;
+    pointer-events:none;
+    z-index:9998;
+    transform:translate(-50%,-50%);
+  }
+  .cursor-dot{
+    width:6px;height:6px;background:var(--accent);
+  }
+  .cursor-glow{
+    width:280px;height:280px;
+    background:radial-gradient(circle, rgba(124,92,255,0.12) 0%, rgba(0,217,255,0.05) 40%, transparent 70%);
+    transition:transform .15s ease-out;
+    z-index:1;
+  }
+  @media (hover:none){
+    .cursor-dot,.cursor-glow{display:none;}
+    body{cursor:auto;}
+  }
+
+  /* ---------- Progress bar ---------- */
+  #progress-bar{
+    position:fixed;top:0;left:0;height:3px;width:0%;
+    background:linear-gradient(90deg,var(--primary),var(--secondary),var(--accent));
+    z-index:9997;
+    box-shadow:0 0 10px var(--secondary);
+    transition:width .1s ease-out;
+  }
+
+  section{position:relative;padding:140px 24px;max-width:1180px;margin:0 auto;z-index:2;}
+
+  /* ---------- Hero ---------- */
+  #hero{
+    min-height:100vh;
+    display:flex;align-items:center;justify-content:center;text-align:center;flex-direction:column;
+    position:relative;overflow:hidden;padding:24px;max-width:none;
+  }
+  #stars-canvas, #particles-canvas{
+    position:absolute;inset:0;width:100%;height:100%;z-index:0;
+  }
+  .hero-bg-gradient{
+    position:absolute;inset:0;z-index:0;
+    background:
+      radial-gradient(ellipse 60% 50% at 30% 20%, rgba(124,92,255,0.25), transparent 60%),
+      radial-gradient(ellipse 50% 40% at 75% 70%, rgba(0,217,255,0.18), transparent 60%);
+    animation:gradientShift 12s ease-in-out infinite alternate;
+  }
+  @keyframes gradientShift{
+    0%{transform:scale(1) translate(0,0);}
+    100%{transform:scale(1.1) translate(2%,-2%);}
+  }
+  .hero-content{position:relative;z-index:2;max-width:720px;}
+  .eyebrow{
+    display:inline-block;font-size:.75rem;letter-spacing:3px;color:var(--secondary);
+    text-transform:uppercase;margin-bottom:24px;opacity:0;
+    animation:fadeUp .9s ease forwards .2s;
+    border:1px solid var(--border);padding:6px 18px;border-radius:100px;
+    background:var(--card);backdrop-filter:blur(10px);
+  }
+  .hero-title{
+    font-size:clamp(3.2rem,10vw,7rem);font-weight:600;line-height:1;
+    background:linear-gradient(135deg,#fff 20%,var(--secondary) 55%,var(--primary) 90%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    letter-spacing:-2px;
+    opacity:0;animation:fadeUp 1s ease forwards .4s;
+    text-shadow:0 0 60px rgba(124,92,255,.25);
+  }
+  .hero-sub{
+    font-size:clamp(1.1rem,2.5vw,1.5rem);color:var(--text);font-weight:400;
+    margin-top:20px;opacity:0;animation:fadeUp 1s ease forwards .6s;
+  }
+  .hero-quote{
+    margin-top:36px;font-size:1rem;color:var(--text-sub);font-weight:300;
+    max-width:520px;margin-left:auto;margin-right:auto;
+    opacity:0;animation:fadeUp 1s ease forwards .8s;
+    white-space:pre-line;
+  }
+  .hero-actions{
+    margin-top:48px;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;
+    opacity:0;animation:fadeUp 1s ease forwards 1s;
+  }
+  .btn{
+    position:relative;overflow:hidden;
+    padding:15px 34px;border-radius:100px;font-size:.95rem;font-weight:500;
+    cursor:pointer;border:1px solid var(--border);
+    font-family:inherit;letter-spacing:.3px;
+    transition:transform .3s ease, box-shadow .3s ease, background .3s ease;
+  }
+  .btn-primary{
+    background:linear-gradient(135deg,var(--primary),var(--secondary));
+    color:#050505;font-weight:600;border:none;
+  }
+  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 10px 40px rgba(124,92,255,.4);}
+  .btn-ghost{background:var(--card);backdrop-filter:blur(10px);color:var(--text);}
+  .btn-ghost:hover{transform:translateY(-3px);border-color:var(--secondary);background:rgba(255,255,255,.12);}
+  .ripple{
+    position:absolute;border-radius:50%;background:rgba(255,255,255,.5);
+    transform:scale(0);animation:rippleAnim .6s linear;pointer-events:none;
+  }
+  @keyframes rippleAnim{to{transform:scale(4);opacity:0;}}
+
+  .scroll-cue{
+    position:absolute;bottom:36px;left:50%;transform:translateX(-50%);
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+    color:var(--text-sub);font-size:.75rem;letter-spacing:2px;
+    opacity:0;animation:fadeUp 1s ease forwards 1.3s;
+  }
+  .scroll-cue .line{width:1px;height:36px;background:linear-gradient(var(--secondary),transparent);animation:scrollLine 2s ease-in-out infinite;}
+  @keyframes scrollLine{0%{transform:scaleY(0);transform-origin:top;}50%{transform:scaleY(1);transform-origin:top;}50.01%{transform-origin:bottom;}100%{transform:scaleY(0);transform-origin:bottom;}}
+
+  @keyframes fadeUp{
+    from{opacity:0;transform:translateY(30px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+
+  /* ---------- Reveal on scroll ---------- */
+  .reveal{opacity:0;transform:translateY(40px);transition:opacity .9s ease, transform .9s ease;}
+  .reveal.in-view{opacity:1;transform:translateY(0);}
+  .reveal-delay-1.in-view{transition-delay:.1s;}
+  .reveal-delay-2.in-view{transition-delay:.25s;}
+  .reveal-delay-3.in-view{transition-delay:.4s;}
+  .reveal-delay-4.in-view{transition-delay:.55s;}
+
+  /* ---------- Section labels ---------- */
+  .section-eyebrow{
+    font-size:.75rem;letter-spacing:3px;text-transform:uppercase;color:var(--secondary);
+    margin-bottom:18px;display:block;
+  }
+  .section-title{
+    font-size:clamp(1.8rem,4vw,2.8rem);font-weight:600;margin-bottom:28px;letter-spacing:-.5px;
+  }
+
+  /* ---------- Glass Card ---------- */
+  .glass-card{
+    background:var(--card);
+    border:1px solid var(--border);
+    backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    border-radius:24px;
+    padding:48px;
+  }
+
+  /* ---------- Who is Giver Section ---------- */
+  #who{display:grid;grid-template-columns:1.2fr .8fr;gap:60px;align-items:center;}
+  #who .glass-card p{color:var(--text-sub);margin-bottom:16px;font-size:1.05rem;}
+  #who .quote-line{
+    color:var(--text);font-style:normal;font-weight:500;
+    display:block;margin:18px 0;padding-left:18px;border-left:2px solid var(--primary);
+  }
+  .who-visual{
+    display:flex;align-items:center;justify-content:center;position:relative;
+  }
+  .heart-glow-wrap{width:100%;max-width:280px;aspect-ratio:1;position:relative;}
+  .heart-glow-wrap svg{width:100%;height:100%;filter:drop-shadow(0 0 40px rgba(124,92,255,.5));animation:heartBeat 3s ease-in-out infinite;}
+  @keyframes heartBeat{0%,100%{transform:scale(1);}10%{transform:scale(1.08);}20%{transform:scale(1);}30%{transform:scale(1.05);}40%{transform:scale(1);}}
+
+  @media (max-width:860px){
+    #who{grid-template-columns:1fr;}
+    .who-visual{order:-1;max-width:200px;margin:0 auto;}
+  }
+
+  /* ---------- Feelings Section (typing reveal) ---------- */
+  #feelings{background:radial-gradient(ellipse at center, rgba(124,92,255,.05), transparent 70%);}
+  .feel-lines{max-width:720px;margin:0 auto;text-align:center;}
+  .feel-line{
+    font-size:clamp(1.2rem,3vw,1.8rem);font-weight:300;color:var(--text-sub);
+    margin:10px 0;opacity:0;transform:translateY(20px);
+    transition:opacity .8s ease, transform .8s ease, color .8s ease, text-shadow .8s ease;
+  }
+  .feel-line.in-view{opacity:1;transform:translateY(0);}
+  .feel-line.glow{color:var(--text);text-shadow:0 0 24px rgba(124,92,255,.6);}
+  .feel-line.whisper{
+    font-style:italic;color:var(--secondary);font-size:clamp(1.1rem,2.6vw,1.5rem);
+  }
+
+  /* ---------- Truth Section ---------- */
+  #truth{
+    min-height:70vh;display:flex;align-items:center;justify-content:center;text-align:center;flex-direction:column;
+    max-width:none;
+  }
+  .truth-line{
+    font-size:clamp(1.8rem,5vw,3.2rem);font-weight:600;margin:30px 0;
+    color:var(--text);opacity:0;transform:translateY(30px);
+    transition:opacity 1s ease, transform 1s ease, text-shadow 1.2s ease;
+  }
+  .truth-line.in-view{opacity:1;transform:translateY(0);text-shadow:0 0 40px rgba(0,217,255,.35);}
+  .truth-line span.hl{
+    background:linear-gradient(135deg,var(--secondary),var(--accent));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+
+  /* ---------- Boundary Cards ---------- */
+  .boundary-grid{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-top:48px;
+  }
+  .b-card{
+    background:var(--card);border:1px solid var(--border);border-radius:20px;
+    padding:36px 26px;backdrop-filter:blur(20px);
+    transition:transform .4s ease, box-shadow .4s ease, border-color .4s ease;
+  }
+  .b-card:hover{
+    transform:translateY(-10px);
+    border-color:var(--primary);
+    box-shadow:0 20px 60px rgba(124,92,255,.25), 0 0 0 1px rgba(124,92,255,.3);
+  }
+  .b-icon{font-size:2rem;margin-bottom:18px;display:block;}
+  .b-card h3{font-size:1.1rem;margin-bottom:10px;font-weight:600;}
+  .b-card p{color:var(--text-sub);font-size:.92rem;}
+  @media (max-width:900px){.boundary-grid{grid-template-columns:1fr 1fr;}}
+  @media (max-width:560px){.boundary-grid{grid-template-columns:1fr;}}
+
+  /* ---------- Essay Section ---------- */
+  #essay{max-width:900px;}
+  .essay-card{
+    background:var(--card);border:1px solid var(--border);
+    backdrop-filter:blur(20px);border-radius:28px;
+    padding:56px;position:relative;overflow:hidden;
+  }
+  .essay-card::before{
+    content:"";position:absolute;top:-40%;right:-20%;width:60%;height:140%;
+    background:radial-gradient(circle, rgba(0,217,255,.12), transparent 65%);
+    pointer-events:none;
+  }
+  .essay-card p{
+    color:var(--text-sub);font-size:1.05rem;margin-bottom:22px;position:relative;z-index:1;
+  }
+  .essay-card p:last-child{margin-bottom:0;}
+  .essay-quote{
+    color:var(--text);font-weight:500;font-size:1.15rem;
+    display:block;margin:26px 0;padding:20px 26px;
+    border-left:2px solid var(--secondary);
+    background:rgba(255,255,255,.03);border-radius:0 12px 12px 0;
+  }
+  .essay-bucket{
+    color:var(--accent);font-weight:600;
+    text-shadow:0 0 20px rgba(156,255,184,.4);
+  }
+  .essay-bucket-visual{
+    display:flex;align-items:center;justify-content:center;margin:36px 0;position:relative;z-index:1;
+  }
+  .essay-bucket-visual svg{width:64px;height:64px;filter:drop-shadow(0 0 18px rgba(0,217,255,.4));}
+  .bucket-water{animation:waterWave 3s ease-in-out infinite;}
+  @keyframes waterWave{0%,100%{transform:translateY(0);}50%{transform:translateY(-2px);}}
+
+  /* ---------- Closing Section ---------- */
+  #closing{
+    min-height:80vh;display:flex;align-items:center;justify-content:center;text-align:center;flex-direction:column;
+    max-width:none;
+  }
+  .closing-line{
+    font-size:clamp(1.3rem,3.5vw,2.2rem);font-weight:300;color:var(--text-sub);
+    margin:8px 0;opacity:0;transform:translateY(24px);
+    transition:opacity .8s ease, transform .8s ease;
+  }
+  .closing-line.in-view{opacity:1;transform:translateY(0);}
+  .closing-line.strong{
+    font-weight:600;color:var(--text);font-size:clamp(1.6rem,4.5vw,2.6rem);
+    background:linear-gradient(135deg,var(--accent),var(--secondary));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    margin-top:14px;
+  }
+
+  /* ---------- Footer ---------- */
+  footer{
+    padding:80px 24px 50px;text-align:center;position:relative;z-index:2;
+    border-top:1px solid var(--border);
+  }
+  footer p{
+    font-size:1.1rem;color:var(--text-sub);font-weight:300;white-space:pre-line;margin-bottom:28px;
+  }
+  .footer-heart{width:34px;height:34px;margin:0 auto;animation:heartBeat 2.4s ease-in-out infinite;filter:drop-shadow(0 0 16px var(--primary));}
+  .footer-credit{margin-top:24px;font-size:.75rem;color:rgba(255,255,255,.3);letter-spacing:1px;}
+
+  /* ---------- Scroll to top ---------- */
+  #scroll-top{
+    position:fixed;bottom:28px;right:28px;width:52px;height:52px;border-radius:50%;
+    background:var(--card);border:1px solid var(--border);backdrop-filter:blur(20px);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:900;
+    opacity:0;visibility:hidden;transform:translateY(20px);
+    transition:opacity .4s ease, transform .4s ease, visibility .4s ease, border-color .3s;
+  }
+  #scroll-top.show{opacity:1;visibility:visible;transform:translateY(0);}
+  #scroll-top:hover{border-color:var(--secondary);}
+  #scroll-top svg{width:20px;height:20px;stroke:var(--text);}
+
+  @media (max-width:640px){
+    section{padding:90px 20px;}
+    .glass-card{padding:30px 24px;}
+  }
+</style>
+</head>
+<body>
+
+<div id="loader">
+  <div class="loader-heart">
+    <svg viewBox="0 0 32 29" fill="none">
+      <path d="M16 29C16 29 0 19.5 0 9.5C0 3 4.5 0 9 0C12 0 14.5 1.7 16 4.5C17.5 1.7 20 0 23 0C27.5 0 32 3 32 9.5C32 19.5 16 29 16 29Z" fill="url(#lg)"/>
+      <defs><linearGradient id="lg" x1="0" y1="0" x2="32" y2="29"><stop stop-color="#7C5CFF"/><stop offset="1" stop-color="#00D9FF"/></linearGradient></defs>
+    </svg>
+  </div>
+  <div class="loader-text">GIVER</div>
+</div>
+
+<div id="progress-bar"></div>
+<div class="cursor-glow" id="cursorGlow"></div>
+<div class="cursor-dot" id="cursorDot"></div>
+
+<!-- ================= HERO ================= -->
+<section id="hero">
+  <canvas id="stars-canvas"></canvas>
+  <canvas id="particles-canvas"></canvas>
+  <div class="hero-bg-gradient"></div>
+  <div class="hero-content">
+    <span class="eyebrow">A Quiet Kind of Strength</span>
+    <h1 class="hero-title">Giver</h1>
+    <p class="hero-sub">ผู้ให้ที่ไม่เคยหวังสิ่งตอบแทน</p>
+    <p class="hero-quote">"บางครั้ง...
+คนที่ดูเข้มแข็งที่สุด
+คือคนที่กำลังแบกความรู้สึกของทุกคนไว้
+โดยไม่มีใครรู้เลยว่าพวกเขาก็เหนื่อย"</p>
+    <div class="hero-actions">
+      <button class="btn btn-primary" onclick="document.getElementById('boundary').scrollIntoView({behavior:'smooth'})">เรียนรู้เพิ่มเติม</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('who').scrollIntoView({behavior:'smooth'})">ดูเรื่องราว</button>
+    </div>
+  </div>
+  <div class="scroll-cue"><span>SCROLL</span><div class="line"></div></div>
+</section>
+
+<!-- ================= WHO IS GIVER ================= -->
+<section id="who">
+  <div class="glass-card reveal">
+    <span class="section-eyebrow">Chapter 01</span>
+    <h2 class="section-title">Giver หรือ ผู้ให้ คือใคร?</h2>
+    <p>ผู้ให้ คือคนที่มีความสุขจากการได้ช่วยเหลือผู้อื่น เมื่อเห็นใครกำลังทุกข์ เศร้า หรือกำลังเจอปัญหา ก็มักจะเป็นคนแรกที่เดินเข้าไปถามว่า</p>
+    <span class="quote-line">"เป็นอะไรรึเปล่า"</span>
+    <span class="quote-line">"อยากระบายไหม"</span>
+    <span class="quote-line">"ไม่เป็นไรนะ เดี๋ยวมันก็ผ่านไป"</span>
+    <p>แม้จะช่วยแก้ปัญหาไม่ได้ทั้งหมด แต่เพียงการรับฟัง ก็ทำให้อีกฝ่ายรู้สึกว่าไม่ได้อยู่คนเดียว</p>
+  </div>
+  <div class="who-visual reveal reveal-delay-2">
+    <div class="heart-glow-wrap">
+      <svg viewBox="0 0 200 200" fill="none">
+        <path d="M100 175C100 175 20 125 20 65C20 32 45 15 70 15C85 15 97 24 100 40C103 24 115 15 130 15C155 15 180 32 180 65C180 125 100 175 100 175Z"
+              stroke="url(#hg)" stroke-width="2" fill="rgba(124,92,255,0.08)"/>
+        <defs><linearGradient id="hg" x1="20" y1="15" x2="180" y2="175"><stop stop-color="#7C5CFF"/><stop offset="0.5" stop-color="#00D9FF"/><stop offset="1" stop-color="#9CFFB8"/></linearGradient></defs>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FEELINGS ================= -->
+<section id="feelings">
+  <div class="feel-lines">
+    <p class="feel-line reveal-line">บ่อยครั้งที่สิ่งที่คนรอบข้างมองเห็นจาก Giver</p>
+    <p class="feel-line reveal-line">มีเพียงรอยยิ้ม</p>
+    <p class="feel-line reveal-line">ความอบอุ่น</p>
+    <p class="feel-line reveal-line">และความพร้อมที่จะเป็น Safe Zone ให้กับทุกคน</p>
+    <p class="feel-line reveal-line glow" style="margin-top:40px;">แต่ลึกลงไปในใจ</p>
+    <p class="feel-line reveal-line glow">ผู้ให้หลายคนกำลังซ่อนความกลัวไว้</p>
+    <p class="feel-line reveal-line" style="margin-top:40px;">กลัวว่า...</p>
+    <p class="feel-line reveal-line whisper">"ถ้าวันหนึ่งเราไม่มีแรงแล้ว"</p>
+    <p class="feel-line reveal-line whisper">"คนอื่นจะยังอยู่กับเราไหม"</p>
+    <p class="feel-line reveal-line" style="margin-top:40px;">เพราะเหตุนี้ ผู้ให้จึงเลือกเก็บความเจ็บปวดของตัวเองไว้</p>
+    <p class="feel-line reveal-line glow">แล้วสวมกอดความทุกข์ของคนอื่นแทน</p>
+  </div>
+</section>
+
+<!-- ================= TRUTH ================= -->
+<section id="truth">
+  <p class="truth-line reveal-line">Saying <span class="hl">No</span><br>ไม่ได้แปลว่าใจร้าย</p>
+  <p class="truth-line reveal-line">การ<span class="hl">พักผ่อน</span><br>ไม่ได้แปลว่าเห็นแก่ตัว</p>
+</section>
+
+<!-- ================= BOUNDARY ================= -->
+<section id="boundary">
+  <div style="text-align:center;">
+    <span class="section-eyebrow reveal" style="display:block;">Chapter 02</span>
+    <h2 class="section-title reveal">การเป็นผู้ให้ที่มีความสุข</h2>
+  </div>
+  <div class="boundary-grid">
+    <div class="b-card reveal reveal-delay-1">
+      <span class="b-icon">❤️</span>
+      <h3>รู้จักขีดจำกัดของตัวเอง</h3>
+      <p>ไม่จำเป็นต้องช่วยทุกคนเสมอไป</p>
+    </div>
+    <div class="b-card reveal reveal-delay-2">
+      <span class="b-icon">🌱</span>
+      <h3>พักผ่อนอย่างเต็มที่</h3>
+      <p>ผู้ให้ก็ควรได้รับการดูแลเช่นกัน</p>
+    </div>
+    <div class="b-card reveal reveal-delay-3">
+      <span class="b-icon">🛡</span>
+      <h3>สร้างขอบเขตที่ดี</h3>
+      <p>ไม่ใช่ทุกปัญหาจะเป็นหน้าที่ของเรา</p>
+    </div>
+    <div class="b-card reveal reveal-delay-4">
+      <span class="b-icon">✨</span>
+      <h3>ใจดีกับตัวเอง</h3>
+      <p>ให้ความรักกับตัวเอง เท่ากับที่ให้กับคนอื่น</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ESSAY ================= -->
+<section id="essay">
+  <div class="essay-card reveal">
+    <p>บ่อยครั้งที่สิ่งที่คนรอบข้างมองเห็นจาก Giver มีเพียงรอยยิ้ม ความอบอุ่น และความพร้อมที่จะเป็น "เซฟโซน" ให้คนอื่นเสมอ แต่ลึกลงไปในใจของผู้ให้อาจมีความกลัวซ่อนอยู่ — กลัวว่าถ้าวันหนึ่งตัวเองหมดพลัง หรือไม่มีประโยชน์แล้ว คนอื่นจะยังรักและอยู่เคียงข้างพวกเขาไหม</p>
+    <p>ความกลัวนี้ทำให้ Giver หลายคนเลือกที่จะเก็บซ่อนความอ่อนแอของตัวเองไว้ แล้วสวมกอดความทุกข์ของคนอื่นแทน</p>
+
+    <span class="essay-quote">แต่ในความเป็นจริงแล้ว "การปฏิเสธไม่ได้แปลว่าเราใจร้าย และการพักผ่อนไม่ได้แปลว่าเราเห็นแก่ตัว"</span>
+
+    <p>การเป็น Giver ที่ยั่งยืนและมีความสุขอย่างแท้จริง คือการเรียนรู้ที่จะสร้างขอบเขต (Boundary) ให้กับตัวเอง รู้ว่าตอนไหนควรยื่นมือเข้าไปช่วย และตอนไหนควรปล่อยให้เป็นเรื่องของโชคชะตาหรือการเติบโตของเขาเอง</p>
+
+    <p>ที่สำคัญที่สุดคือ การใจดีกับตัวเองให้เท่ากับที่ใจดีกับคนอื่น เพราะ<span class="essay-bucket">ถังน้ำที่ว่างเปล่า ย่อมไม่สามารถแบ่งปันน้ำให้ใครดื่มประทังความกระหายได้</span></p>
+
+    <div class="essay-bucket-visual">
+      <svg viewBox="0 0 64 64" fill="none">
+        <path d="M10 20H54L48 56C47.6 58.2 45.7 60 43.4 60H20.6C18.3 60 16.4 58.2 16 56L10 20Z" stroke="#00D9FF" stroke-width="2" fill="rgba(0,217,255,0.06)"/>
+        <ellipse cx="32" cy="20" rx="22" ry="6" stroke="#7C5CFF" stroke-width="2" fill="rgba(124,92,255,0.08)"/>
+        <path class="bucket-water" d="M17 34C22 31 27 31 32 34C37 37 42 37 47 34L45 52C44.6 53.5 43.3 54.5 41.8 54.5H22.2C20.7 54.5 19.4 53.5 19 52L17 34Z" fill="url(#water)"/>
+        <defs><linearGradient id="water" x1="17" y1="34" x2="47" y2="54"><stop stop-color="#00D9FF" stop-opacity="0.7"/><stop offset="1" stop-color="#9CFFB8" stop-opacity="0.5"/></linearGradient></defs>
+      </svg>
+    </div>
+
+    <p>สุดท้ายแล้ว โลกนี้ไม่ได้ต้องการผู้ให้ที่ยอมแตกสลายเพื่อเติมเต็มคนอื่น แต่ต้องการผู้ให้ที่อิ่มเอมและมีความสุข เพื่อที่จะส่งต่อพลังบวกนั้นออกไปได้เรื่อย ๆ อย่างไม่มีวันหมดต่างหาก</p>
+  </div>
+</section>
+
+<!-- ================= CLOSING ================= -->
+<section id="closing">
+  <p class="closing-line reveal-line">โลกนี้</p>
+  <p class="closing-line reveal-line">ไม่ได้ต้องการผู้ให้ ที่ยอมแตกสลาย เพื่อเติมเต็มทุกคน</p>
+  <p class="closing-line reveal-line" style="margin-top:24px;">แต่ต้องการ</p>
+  <p class="closing-line strong reveal-line">ผู้ให้ที่มีความสุข</p>
+  <p class="closing-line strong reveal-line">ผู้ให้ที่เต็มเปี่ยม</p>
+  <p class="closing-line strong reveal-line">และผู้ให้ที่ยังมีแรง</p>
+  <p class="closing-line reveal-line" style="margin-top:24px;">เพื่อส่งต่อความอบอุ่นนั้น ให้กับโลกได้ต่อไป</p>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <svg class="footer-heart" viewBox="0 0 32 29" fill="none">
+    <path d="M16 29C16 29 0 19.5 0 9.5C0 3 4.5 0 9 0C12 0 14.5 1.7 16 4.5C17.5 1.7 20 0 23 0C27.5 0 32 3 32 9.5C32 19.5 16 29 16 29Z" fill="url(#fg)"/>
+    <defs><linearGradient id="fg" x1="0" y1="0" x2="32" y2="29"><stop stop-color="#7C5CFF"/><stop offset="1" stop-color="#9CFFB8"/></linearGradient></defs>
+  </svg>
+  <p>"อย่าลืมใจดีกับตัวเอง
+เหมือนที่ใจดีกับคนอื่น"</p>
+  <div class="footer-credit">GIVER — A SPACE FOR THOSE WHO GIVE</div>
+</footer>
+
+<div id="scroll-top">
+  <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+</div>
+
+<script>
+/* ---------------- Loading Screen ---------------- */
+window.addEventListener('load', () => {
+  setTimeout(() => document.getElementById('loader').classList.add('hidden'), 900);
+});
+
+/* ---------------- Custom Cursor ---------------- */
+const cursorDot = document.getElementById('cursorDot');
+const cursorGlow = document.getElementById('cursorGlow');
+let mouseX = 0, mouseY = 0, glowX = 0, glowY = 0;
+window.addEventListener('mousemove', e => {
+  mouseX = e.clientX; mouseY = e.clientY;
+  cursorDot.style.left = mouseX + 'px';
+  cursorDot.style.top = mouseY + 'px';
+});
+function animateGlow(){
+  glowX += (mouseX - glowX) * 0.12;
+  glowY += (mouseY - glowY) * 0.12;
+  cursorGlow.style.left = glowX + 'px';
+  cursorGlow.style.top = glowY + 'px';
+  requestAnimationFrame(animateGlow);
+}
+animateGlow();
+
+/* ---------------- Ripple on buttons ---------------- */
+document.querySelectorAll('.btn').forEach(btn => {
+  btn.addEventListener('click', function(e){
+    const rect = this.getBoundingClientRect();
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    const size = Math.max(rect.width, rect.height);
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = (e.clientX - rect.left - size/2) + 'px';
+    ripple.style.top = (e.clientY - rect.top - size/2) + 'px';
+    this.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 650);
+  });
+});
+
+/* ---------------- Progress bar ---------------- */
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  document.getElementById('progress-bar').style.width = scrolled + '%';
+
+  const scrollTopBtn = document.getElementById('scroll-top');
+  if (h.scrollTop > 600) scrollTopBtn.classList.add('show');
+  else scrollTopBtn.classList.remove('show');
+});
+document.getElementById('scroll-top').addEventListener('click', () => {
+  window.scrollTo({top:0, behavior:'smooth'});
+});
+
+/* ---------------- Scroll Reveal (IntersectionObserver) ---------------- */
+const revealEls = document.querySelectorAll('.reveal');
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) entry.target.classList.add('in-view');
+  });
+}, {threshold:0.15});
+revealEls.forEach(el => revealObserver.observe(el));
+
+/* ---------------- Staggered line reveal (feelings / truth / closing) ---------------- */
+const lineGroups = [document.querySelectorAll('#feelings .reveal-line'),
+                     document.querySelectorAll('#truth .reveal-line'),
+                     document.querySelectorAll('#closing .reveal-line')];
+
+lineGroups.forEach(group => {
+  group.forEach((line, i) => {
+    const lineObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('in-view'), i * 220);
+          lineObserver.unobserve(entry.target);
+        }
+      });
+    }, {threshold:0.4});
+    lineObserver.observe(line);
+  });
+});
+
+/* ---------------- Stars canvas (twinkling) ---------------- */
+const starsCanvas = document.getElementById('stars-canvas');
+const starsCtx = starsCanvas.getContext('2d');
+let stars = [];
+function resizeStars(){
+  starsCanvas.width = starsCanvas.offsetWidth;
+  starsCanvas.height = starsCanvas.offsetHeight;
+  const count = Math.floor((starsCanvas.width * starsCanvas.height) / 6000);
+  stars = Array.from({length: count}, () => ({
+    x: Math.random() * starsCanvas.width,
+    y: Math.random() * starsCanvas.height,
+    r: Math.random() * 1.4 + 0.3,
+    baseAlpha: Math.random() * 0.6 + 0.2,
+    twinkleSpeed: Math.random() * 0.02 + 0.005,
+    phase: Math.random() * Math.PI * 2
+  }));
+}
+function drawStars(t){
+  starsCtx.clearRect(0,0,starsCanvas.width, starsCanvas.height);
+  stars.forEach(s => {
+    const alpha = s.baseAlpha + Math.sin(t * s.twinkleSpeed + s.phase) * 0.3;
+    starsCtx.beginPath();
+    starsCtx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+    starsCtx.fillStyle = `rgba(255,255,255,${Math.max(0,alpha)})`;
+    starsCtx.fill();
+  });
+  requestAnimationFrame(drawStars);
+}
+resizeStars();
+requestAnimationFrame(drawStars);
+
+/* ---------------- Floating light particles ---------------- */
+const partCanvas = document.getElementById('particles-canvas');
+const partCtx = partCanvas.getContext('2d');
+let particles = [];
+const colors = ['#7C5CFF','#00D9FF','#9CFFB8'];
+function resizeParticles(){
+  partCanvas.width = partCanvas.offsetWidth;
+  partCanvas.height = partCanvas.offsetHeight;
+  const count = Math.floor(partCanvas.width / 40);
+  particles = Array.from({length: count}, () => ({
+    x: Math.random() * partCanvas.width,
+    y: Math.random() * partCanvas.height,
+    r: Math.random() * 2 + 1,
+    speedY: Math.random() * 0.4 + 0.1,
+    drift: Math.random() * 0.6 - 0.3,
+    color: colors[Math.floor(Math.random()*colors.length)],
+    alpha: Math.random() * 0.5 + 0.15
+  }));
+}
+function drawParticles(){
+  partCtx.clearRect(0,0,partCanvas.width, partCanvas.height);
+  particles.forEach(p => {
+    p.y -= p.speedY;
+    p.x += p.drift;
+    if (p.y < -10) { p.y = partCanvas.height + 10; p.x = Math.random()*partCanvas.width; }
+    partCtx.beginPath();
+    partCtx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    partCtx.fillStyle = p.color;
+    partCtx.globalAlpha = p.alpha;
+    partCtx.shadowColor = p.color;
+    partCtx.shadowBlur = 8;
+    partCtx.fill();
+    partCtx.globalAlpha = 1;
+  });
+  requestAnimationFrame(drawParticles);
+}
+resizeParticles();
+requestAnimationFrame(drawParticles);
+
+window.addEventListener('resize', () => { resizeStars(); resizeParticles(); });
+
+/* ---------------- Parallax mouse on hero gradient ---------------- */
+const heroGradient = document.querySelector('.hero-bg-gradient');
+document.getElementById('hero').addEventListener('mousemove', (e) => {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const x = (e.clientX - rect.left) / rect.width - 0.5;
+  const y = (e.clientY - rect.top) / rect.height - 0.5;
+  heroGradient.style.transform = `translate(${x*20}px, ${y*20}px)`;
+});
+
+/* ---------------- Background tint shift on scroll ---------------- */
+window.addEventListener('scroll', () => {
+  const scrollRatio = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+  const hue = 250 + scrollRatio * 60;
+  document.body.style.backgroundColor = `hsl(${hue}, 40%, 2%)`;
+});
+</script>
+</body>
+</html>
